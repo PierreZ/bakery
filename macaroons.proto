@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package bakery;
+
+message MacaroonRequest {
+  string identifier = 1; // The identifier is the public part of the macaroons.
+}
+
+message MacaroonSerialized {
+    string serialized = 1;
+}
+
+service Bakery {
+  rpc CreateMacaroon (MacaroonRequest) returns (MacaroonSerialized);
+}
