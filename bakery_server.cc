@@ -13,12 +13,12 @@ using grpc::Status;
 #include "bakery.grpc.pb.h"
 #include "bakery.pb.h"
 
-using bakery::MacaroonRequest;
+using bakery::NewMacaroonRequest;
 using bakery::MacaroonSerialized;
 using bakery::Bakery;
 
 class BakeryServiceImpl final : public Bakery::Service {
-  Status CreateMacaroon(ServerContext* context, const MacaroonRequest* request, MacaroonSerialized* reply) override {
+  Status CreateMacaroon(ServerContext* context, const NewMacaroonRequest* request, MacaroonSerialized* reply) override {
 
     macaroon_returncode ret;
     std::string location;
@@ -26,13 +26,20 @@ class BakeryServiceImpl final : public Bakery::Service {
     std::string secure_key;
     secure_key = "unicorn are always secret";
     std::string issuer_id;
-    issuer_id = "abc";
+    issuer_id = request->identifier();
 
-    macaroon* m = macaroon_create((const unsigned char*)location.c_str(), strlen(location.c_str()),
-                                   (const unsigned char*)secure_key.c_str(), strlen(secure_key.c_str()),
-                                   (const unsigned char*)issuer_id.c_str(), strlen(issuer_id.c_str()),
-                                   &ret);
-    
+    macaroon* m = macaroon_create(
+      (const unsigned char*)location.c_str(), strlen(location.c_str()),
+      (const unsigned char*)secure_key.c_str(), strlen(secure_key.c_str()),
+      (const unsigned char*)issuer_id.c_str(), strlen(issuer_id.c_str()),
+      &ret);
+
+    // Adding first class caveats
+    for(const std::string &caveat : request->first_party_caveats()){
+      m = macaroon_add_first_party_caveat(m,
+        (const unsigned char*)caveat.c_str(), strlen(caveat.c_str()),
+        &ret));
+    }
     // TODO: checking ret code
     size_t ms_size = macaroon_serialize_size_hint(m, MACAROON_V2);
     unsigned char* ms = (unsigned char *)malloc(ms_size);

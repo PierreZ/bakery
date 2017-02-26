@@ -2,14 +2,21 @@ syntax = "proto3";
 
 package bakery;
 
-message MacaroonRequest {
+message NewMacaroonRequest {
   string identifier = 1; // The identifier is the public part of the macaroons.
+  repeated string first_party_caveats = 2;
 }
 
 message MacaroonSerialized {
     string serialized = 1;
 }
 
-service Bakery {
-  rpc CreateMacaroon (MacaroonRequest) returns (MacaroonSerialized);
+message ValidMacaroon {
+  bool valid = 1;
 }
+
+service Bakery {
+  rpc CreateMacaroon (NewMacaroonRequest) returns (MacaroonSerialized);
+}
+
+
