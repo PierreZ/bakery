@@ -3,32 +3,47 @@
 #include <string>
 
 #include <grpc++/grpc++.h>
-
-#include "macaroons.grpc.pb.h"
-#include "macaroons.pb.h"
-
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
+
+#include <macaroons.h>
+
+#include "bakery.grpc.pb.h"
+#include "bakery.pb.h"
+
 using bakery::MacaroonRequest;
 using bakery::MacaroonSerialized;
 using bakery::Bakery;
 
-
-// Logic and data behind the server's behavior.
-// class GreeterServiceImpl final : public Greeter::Service {
-//   Status SayHello(ServerContext* context, const HelloRequest* request,
-//                   HelloReply* reply) override {
-//     std::string prefix("Hello ");
-//     reply->set_message(prefix + request->name());
-//     return Status::OK;
-//   }
-// };
-
 class BakeryServiceImpl final : public Bakery::Service {
   Status CreateMacaroon(ServerContext* context, const MacaroonRequest* request, MacaroonSerialized* reply) override {
-    reply->set_serialized("aeb");
+
+    macaroon_returncode ret;
+    std::string location;
+    location = "https://pierrezemb.fr";
+    std::string secure_key;
+    secure_key = "unicorn are always secret";
+    std::string issuer_id;
+    issuer_id = "abc";
+
+    macaroon* m = macaroon_create((const unsigned char*)location.c_str(), strlen(location.c_str()),
+                                   (const unsigned char*)secure_key.c_str(), strlen(secure_key.c_str()),
+                                   (const unsigned char*)issuer_id.c_str(), strlen(issuer_id.c_str()),
+                                   &ret);
+    
+    // TODO: checking ret code
+    size_t ms_size = macaroon_serialize_size_hint(m, MACAROON_V2);
+    unsigned char* ms = (unsigned char *)malloc(ms_size);
+
+    macaroon_serialize(m,MACAROON_V2, ms, ms_size, &ret);
+    // TODO: checking ret code
+
+    std::string str;
+    str.append(reinterpret_cast<const char*>(macaroon_serialize));
+
+    reply->set_serialized(str);
     return Status::OK;
   }
 };

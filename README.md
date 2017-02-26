@@ -7,7 +7,7 @@ A Macaroons factory built with gRPC
 
 ## Why C++?
 
-Because [the main implementation is written in C](https://github.com/rescrv/libmacaroons) and I don't want to write a lib in Rustlang.
+Because [the main implementation is written in C](https://github.com/rescrv/libmacaroons) and I don't want to write a lib in Rustlang. the actual rust implementation is not supporting macaroonV2 yet.
 
 ## Why gRPC?
 
@@ -17,8 +17,15 @@ Because I don't want to write too much dirty/unsafe C.
 
 It's only a toy to play a bit with macaroons, don't assume that my code is actually working. 
 
-### Generate proto reminder
+## Dependencies
+
+* [protobuf](https://github.com/google/protobuf)
+* [gRPC](https://github.com/grpc/grpc) 
+* [libmacaroons](https://github.com/rescrv/libmacaroons)
+
+## Building bakery
 
 ```bash
-protoc ./macaroons.proto --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin
+make proto 
+make bakery_server
 ```
